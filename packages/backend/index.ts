@@ -4,7 +4,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import { generateRandomString } from './src/Utils';
 import { URLSearchParams } from 'url';
-import { access } from 'fs';
+import { access, accessSync } from 'fs';
 
 const port = 5001;
 
@@ -32,7 +32,6 @@ app.get('/myApi/auth/login', (req: Request, res: Response) => {
       redirect_uri: "http://localhost:3000/myApi/auth/callback",
       state: state
   } as any);
-
   res.redirect('https://accounts.spotify.com/authorize/?' + auth_query_parameters.toString());
 });
 
@@ -63,14 +62,26 @@ app.get('/myApi/auth/callback', (req: Request, res: Response) => {
 });
 
 app.get('/myApi/auth/token', (req, res) => {
-  console.log("request object in /myApi/auth/token", req);
   res.json(
      {
         access_token: access_token
      })
 })
-app.get('/myApi/search', (req, res) => {
+app.get('/myApi/search', (req: Request, res: Response) => {
   console.log('hit search endpoint');
+  const auth_query_parameters = new URLSearchParams({
+    type: 'album,track',
+    include_external: 'audio',
+    limit: '5',
+    q: req.query.q as string
+  })
+  axios.get('https://api.spotify.com/v1/search?' + auth_query_parameters.toString(), {
+    headers: {
+      'Authorization': "Bearer " + access_token
+    }})
+    .then( ({data} ) => {
+      res.json(data)
+    })
   // TODO: Phase 2: Call the Search API on behalf of the client
 });
 

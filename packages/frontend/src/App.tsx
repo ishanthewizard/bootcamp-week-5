@@ -10,8 +10,6 @@ export const App = () => {
     const getToken = async () => {
       axios.get('/myApi/auth/token')
       .then((response)=>{
-        console.log("response payload", response);
-        console.log(response.data.access_token)
         setToken(response.data.access_token)})
     };
 
